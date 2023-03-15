@@ -1,0 +1,76 @@
+using System;
+using System.Reflection;
+using Domain.Aggregates.AirportAggregate;
+using FluentValidation.AspNetCore;
+using Infrastructure;
+using Infrastructure.Repositores;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MediatR;
+using Domain.Aggregates.FlightAggregate;
+using Domain.Aggregates.CustomerAggregate;
+using Domain.Aggregates.OrderAggregate;
+
+namespace API
+{
+    public class Startup
+    {
+        public Startup(IConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+        
+        public IConfiguration Configuration { get; }
+
+        // This method gets called by the runtime. Use this method to add services to the container.
+
+        [Obsolete]
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services.AddControllers()
+                .AddNewtonsoftJson()
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssembly(typeof(Startup).Assembly));
+            
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+            services.AddOpenApiDocument(d => d.Title = "AcmeFlights API");
+
+            services.AddFlightsContext(
+                Configuration["Database:ConnectionString"],
+                typeof(Startup).GetTypeInfo().Assembly.GetName().Name);
+
+            services.AddScoped<IAirportRepository, AirportRepository>();
+            services.AddScoped<IFlightRepository, FlightRepository>();
+            services.AddScoped<ICustomerRepository, CustomerRepository>();
+            services.AddScoped<IFlightRateRepository, FlightRateRepository>();
+            services.AddScoped<IOrderRepository, OrderRepository>();
+            services.AddScoped<IOrderLineRepository, OrderLineRepository>();
+
+        }
+
+        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        {
+            if (env.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
+
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+
+            app.UseOpenApi();
+            app.UseSwaggerUi3();
+        }
+    }
+}
