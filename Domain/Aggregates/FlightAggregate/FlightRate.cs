@@ -10,6 +10,7 @@ namespace Domain.Aggregates.FlightAggregate
         public string Name { get; private set; }
         public Price Price { get; private set; }
         public int Available { get; private set; }
+        public virtual Flight Flight { get; set; }
 
         protected FlightRate()
         {
@@ -31,6 +32,11 @@ namespace Domain.Aggregates.FlightAggregate
         public void MutateAvailability(int quantity)
         {
             Available += quantity;
+        }
+
+        public void ReduceAvailability(int quantity)
+        {
+            Available  -= quantity;
         }
     }
 }

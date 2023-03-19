@@ -16,6 +16,6 @@ namespace Domain.Aggregates.OrderAggregate
 
         Task<Order> GetAsync(Guid orderId);
 
-        Task<List<Order>> GetOrdersAsync(Guid FlightRateId);
+        Task<List<Order>> GetDraftOrdersAsync(Guid FlightRateId);
     }
 }

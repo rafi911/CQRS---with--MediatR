@@ -31,12 +31,16 @@ namespace API
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers()
-                .AddNewtonsoftJson()
+                //.AddNewtonsoftJson()
                 .AddFluentValidation(fv => fv.RegisterValidatorsFromAssembly(typeof(Startup).Assembly));
             
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+            services.AddMediatR(cfg =>
+                {
+                    cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+                    cfg.Lifetime = ServiceLifetime.Scoped;
+                });
 
             services.AddOpenApiDocument(d => d.Title = "AcmeFlights API");
 

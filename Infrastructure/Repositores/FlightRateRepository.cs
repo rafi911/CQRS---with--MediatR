@@ -25,14 +25,18 @@ namespace Infrastructure.Repositores
             get { return _context; }
         }
 
-        public async Task<FlightRate> GetAsync(Guid id)
+        public IQueryable<FlightRate> Get(Guid id)
         {
-            return await _context.FlightRates.FirstOrDefaultAsync(fr => fr.Id== id);
+            return _context.FlightRates.Where(fr => fr.Id== id);
         }
 
         public async Task<List<FlightRate>> GetFlightRatesAsync(List<Guid> ids)
         {
             return await _context.FlightRates.Where(f => ids.Contains(f.Id)).ToListAsync();
+        }
+        public async Task<List<FlightRate>> GetFlightRatesAsync()
+        {
+            return await _context.FlightRates.AsNoTracking().ToListAsync();
         }
 
         public void Update(FlightRate flightRate)

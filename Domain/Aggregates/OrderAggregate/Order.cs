@@ -20,5 +20,9 @@ namespace Domain.Aggregates.OrderAggregate
             OrderDate = orderDate;
         }
 
+        public void ChangeState(OrderState state)
+        {
+            State = state;
+        }
     }
 }

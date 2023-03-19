@@ -3,6 +3,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace API.Controllers
@@ -27,11 +28,16 @@ namespace API.Controllers
             return Ok(order);
         }
 
-        [HttpPost("/Update")]
-        public async Task<IActionResult> Update(UpdateOrderCommand command)
+        [HttpPatch("{id}/Confirm")]
+        public async Task<IResult> Confirm([FromRoute] Guid id)
         {
+            UpdateOrderCommand command = new(id);
             var order = await _mediator.Send(command);
-            return Ok(order);
+            if (order is null)
+            {
+                return Results.Accepted("The order is being confirmed already");
+            }
+            return Results.Ok("The order has been confirmed");
         }
     }
 }

@@ -1,31 +1,56 @@
-﻿using Domain.Aggregates.OrderAggregate;
+﻿using API.ApiResponses;
+using AutoMapper;
+using Domain.Aggregates.FlightAggregate;
+using Domain.Aggregates.OrderAggregate;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace API.Application.Commands
 {
-    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Order>
+    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderResponse>
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderLineRepository _orderLineRepository;
-        public CreateOrderCommandHandler(IOrderRepository orderRepository, IOrderLineRepository orderLineRepository)
+        private readonly IFlightRateRepository _flightRateRepository;
+        private readonly IMapper _mapper;
+        public CreateOrderCommandHandler
+            (
+                IOrderRepository orderRepository,
+                IOrderLineRepository orderLineRepository,
+                IFlightRateRepository flightRateRepository,
+                IMapper mapper
+            )
         {
             _orderRepository = orderRepository;
             _orderLineRepository = orderLineRepository;
+            _flightRateRepository = flightRateRepository;
+            _mapper = mapper;
         }
 
-        public async Task<Order> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+        public async Task<OrderResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
         {
-            var order = _orderRepository.Add(new Order(request.CustomerId, OrderState.DRAFT, DateTime.Now));
-            var orderLine = _orderLineRepository.Add(new OrderLine(order.Id, request.FlightId, request.Price));
+            var flightRate = await _flightRateRepository.Get(request.FlightRateId).FirstOrDefaultAsync();
+            if(flightRate== null)
+            {
+                return default;
+            }
 
-            order.OrderLines.Add(orderLine);
+            if (request.Slots > flightRate.Available)
+            {
+                return default;
+            }
+
+            var order = _orderRepository.Add(new Order(request.CustomerId, OrderState.DRAFT, DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc)));
+            var orderLine = _orderLineRepository.Add(new OrderLine(order.Id, request.FlightRateId, flightRate.Price.Value, request.Slots));
+
+            orderLine.Order = order;
 
             await _orderLineRepository.UnitOfWork.SaveChangesAsync();
 
-            return await Task.FromResult(order);
+            return _mapper.Map<OrderResponse>(orderLine);
         }
     }
 }

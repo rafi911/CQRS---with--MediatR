@@ -6,5 +6,5 @@ using System;
 
 namespace API.Application.Commands
 {
-    public record UpdateFlightRateCommand(Guid FlightId, decimal Price, Currency Currency) : IRequest<FlightRateViewModel> { }
+    public record UpdateFlightRateCommand(Guid FlightRateId, decimal Price) : IRequest<FlightRateViewModel> { }
 }

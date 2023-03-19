@@ -29,8 +29,12 @@ public class FlightsController : ControllerBase
 
     [HttpGet]
     [Route("Search")]
-    public async Task<List<FlightResponse>> GetAvailableFlights(string destination)
+    public async Task<List<FlightResponse>> GetAvailableFlights([FromQuery]string destination)
     {
+        if (destination is null)
+        {
+            return default;
+        }
         GetFlightsQuery searchFlightCommand = new(destination);
         var flights = await _mediator.Send(searchFlightCommand);
 

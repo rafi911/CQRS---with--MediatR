@@ -10,7 +10,8 @@ namespace Domain.Aggregates.FlightAggregate
     public interface IFlightRateRepository: IRepository<FlightRate>
     {
         void Update(FlightRate flightRate);
-        Task<FlightRate> GetAsync(Guid id);
+        IQueryable<FlightRate> Get(Guid id);
         Task<List<FlightRate>> GetFlightRatesAsync(List<Guid> ids);
+        Task<List<FlightRate>> GetFlightRatesAsync();
     }
 }

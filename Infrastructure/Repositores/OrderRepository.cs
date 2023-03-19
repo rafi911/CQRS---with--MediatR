@@ -33,14 +33,15 @@ namespace Infrastructure.Repositores
             return await _context.Orders.Where(o => o.Id == orderId).Include(o => o.OrderLines).FirstOrDefaultAsync();
         }
 
-        public async Task<List<Order>> GetOrdersAsync(Guid FlightRateId)
+        public async Task<List<Order>> GetDraftOrdersAsync(Guid FlightRateId)
         {
             var orderIds = _context.OrderLines.Where(ol => ol.FlightRateId == FlightRateId).Select(ol => ol.OrderId);
             if (orderIds is null)
             {
                 return new List<Order>();
             }
-            var orders = await _context.Orders.Where(o => orderIds.Contains(o.Id)).ToListAsync();
+            var orders = await _context.Orders.Where(o => orderIds.Contains(o.Id) && o.State == OrderState.DRAFT)
+                    .Include(o => o.OrderLines).ToListAsync();
 
             return orders;
         }

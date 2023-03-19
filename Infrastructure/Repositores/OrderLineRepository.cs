@@ -41,5 +41,10 @@ namespace Infrastructure.Repositores
                 _context.OrderLines.Update(orderLine);
             }            
         }
+
+        public void BulkUpdate(IEnumerable<OrderLine> orderLines)
+        {
+            _context.OrderLines.UpdateRange(orderLines);
+        }
     }
 }

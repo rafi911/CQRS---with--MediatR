@@ -40,11 +40,9 @@ namespace Infrastructure
 
         public async Task<bool> SaveEntitiesAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            await _mediator.DispatchDomainEventsAsync(this);
-
             var result = await base.SaveChangesAsync(cancellationToken);
 
-            return true;
+            return result >= 1;
         }
     }
 }

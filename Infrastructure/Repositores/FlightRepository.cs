@@ -40,7 +40,7 @@ namespace Infrastructure.Repositores
                           join destinationAirport in _context.Airports on flight.DestinationAirportId equals destinationAirport.Id
                           join originAirport in _context.Airports on flight.OriginAirportId equals originAirport.Id
                           join flightRate in _context.FlightRates on flight.Id equals flightRate.FlightId
-                          where destinationAirport.Name.Contains(destination)
+                          where destinationAirport.Name.Contains(destination) || destinationAirport.Code.Contains(destination)
                           group new { flight , destinationAirport , originAirport , flightRate } by new 
                             { 
                               flight.Id,                            
@@ -49,11 +49,13 @@ namespace Infrastructure.Repositores
                           } into g
                           select new FlightDetail
                           {
+                              FlightId = g.Key.Id,
                               DepartureAirportCode = g.Key.departureAirportCode,
                               ArrivalAirportCode = g.Key.ArrivaleAirportCode,
                               Arrival = g.Select(aggegate => aggegate.flight.Arrival).FirstOrDefault(),
                               Departure = g.Select(aggegate => aggegate.flight.Departure).FirstOrDefault(),
-                              PriceFrom = g.Select(aggegate => aggegate.flightRate).OrderByDescending(rate => rate.Price.Value).Take(1).FirstOrDefault().Price.Value,
+                              PriceFrom = g.Select(aggegate => aggegate.flightRate).OrderBy(rate => rate.Price.Value).Take(1).FirstOrDefault().Price.Value,
+                              FlightRateId = g.Select(aggegate => aggegate.flightRate).OrderBy(rate => rate.Price.Value).Take(1).FirstOrDefault().Id
                           }).ToListAsync();
         }
 

@@ -21,7 +21,7 @@ namespace API.Application.Commands
         public async Task Handle(FlightRatePriceChangedEvent notification, CancellationToken cancellationToken)
         {
             var flightRate = notification.FlightRate;
-            var orders = await _orderRepository.GetOrdersAsync(flightRate.Id);
+            var orders = await _orderRepository.GetDraftOrdersAsync(flightRate.Id);
 
             var customers = await _customerRepository.GetCustomersAsync(orders.Select(o => o.CustomerId).ToList());
 

@@ -13,5 +13,7 @@ namespace Domain.Aggregates.FlightAggregate
         public DateTimeOffset Departure { get; set; }
         public DateTimeOffset Arrival { get; set; }
         public decimal PriceFrom { get; set; }
+        public Guid FlightRateId { get; set; }
+        public Guid FlightId { get; set; }
     }
 }

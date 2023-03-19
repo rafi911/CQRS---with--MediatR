@@ -14,5 +14,6 @@ namespace Domain.Aggregates.OrderAggregate
         void Update(OrderLine orderLine);
 
         Task<OrderLine> GetAsync(Guid orderLineId);
+        void BulkUpdate(IEnumerable<OrderLine> orderLines);
     }
 }
