@@ -33,10 +33,15 @@ namespace Infrastructure.Repositores
             return await _context.Orders.Where(o => o.Id == orderId).Include(o => o.OrderLines).FirstOrDefaultAsync();
         }
 
+        /// <summary>
+        /// Get draft orders by flight rate id
+        /// </summary>
+        /// <param name="FlightRateId"></param>
+        /// <returns></returns>
         public async Task<List<Order>> GetDraftOrdersAsync(Guid FlightRateId)
         {
-            var orderIds = _context.OrderLines.Where(ol => ol.FlightRateId == FlightRateId).Select(ol => ol.OrderId);
-            if (orderIds is null)
+            var orderIds = await _context.OrderLines.Where(ol => ol.FlightRateId == FlightRateId).Select(ol => ol.OrderId).ToListAsync();
+            if (!orderIds.Any())
             {
                 return new List<Order>();
             }

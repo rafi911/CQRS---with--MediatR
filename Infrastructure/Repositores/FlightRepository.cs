@@ -47,6 +47,7 @@ namespace Infrastructure.Repositores
                               departureAirportCode = originAirport.Code,
                               ArrivaleAirportCode = destinationAirport.Code,
                           } into g
+                          let cheapestFlightRate = g.Select(aggegate => aggegate.flightRate).OrderBy(rate => rate.Price.Value).FirstOrDefault()
                           select new FlightDetail
                           {
                               FlightId = g.Key.Id,
@@ -54,8 +55,8 @@ namespace Infrastructure.Repositores
                               ArrivalAirportCode = g.Key.ArrivaleAirportCode,
                               Arrival = g.Select(aggegate => aggegate.flight.Arrival).FirstOrDefault(),
                               Departure = g.Select(aggegate => aggegate.flight.Departure).FirstOrDefault(),
-                              PriceFrom = g.Select(aggegate => aggegate.flightRate).OrderBy(rate => rate.Price.Value).Take(1).FirstOrDefault().Price.Value,
-                              FlightRateId = g.Select(aggegate => aggegate.flightRate).OrderBy(rate => rate.Price.Value).Take(1).FirstOrDefault().Id
+                              PriceFrom = cheapestFlightRate.Price.Value,
+                              FlightRateId = cheapestFlightRate.Id
                           }).ToListAsync();
         }
 

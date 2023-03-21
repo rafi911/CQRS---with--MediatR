@@ -1,4 +1,5 @@
-﻿using API.Application.Commands;
+﻿using API.ApiResponses;
+using API.Application.Commands;
 using AutoMapper;
 using MediatR;
 using Microsoft.AspNetCore.Http;
@@ -22,22 +23,19 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostAsync(CreateOrderCommand command)
+        public async Task<OrderResponse> PostAsync(CreateOrderCommand command)
         {
-            var order = await _mediator.Send(command);
-            return Ok(order);
+            var orderDetail = await _mediator.Send(command);
+            return _mapper.Map<OrderResponse>(orderDetail);
         }
 
-        [HttpPatch("{id}/Confirm")]
-        public async Task<IResult> Confirm([FromRoute] Guid id)
+        [HttpPatch("{id}/Update")]
+        public async Task<OrderResponse> Confirm([FromRoute] Guid id)
         {
             UpdateOrderCommand command = new(id);
-            var order = await _mediator.Send(command);
-            if (order is null)
-            {
-                return Results.Accepted("The order is being confirmed already");
-            }
-            return Results.Ok("The order has been confirmed");
+            var orderDetail = await _mediator.Send(command);
+            return _mapper.Map<OrderResponse>(orderDetail);
+           
         }
     }
 }

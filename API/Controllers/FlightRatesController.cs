@@ -23,14 +23,14 @@ namespace API.Controllers
             _mapper = mapper;
         }
 
-        [HttpPost("/ChangeFlightRate")]
-        public async Task<IActionResult> ChangeFlightRateAsync([FromBody] UpdateFlightRateCommand command)
+        [HttpPut("/ChangeFlightRate")]
+        public async Task<FlightRateResponse> ChangeFlightRateAsync([FromBody] UpdateFlightRateCommand command)
         {
             var flightRateViewModel = await _mediator.Send(command);
             var flightRatePriceChangedEvent = new FlightRatePriceChangedEvent(flightRateViewModel.Flight, flightRateViewModel.FlightRate);
             await _mediator.Publish(flightRatePriceChangedEvent);
 
-            return Ok(flightRateViewModel.RateResponse);
+            return flightRateViewModel.RateResponse;
         }
 
         [HttpGet]

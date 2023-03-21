@@ -25,10 +25,10 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostAsync([FromBody] CreateCustomerCommand command)
+        public async Task<CustomerReponse> PostAsync([FromBody] CreateCustomerCommand command)
         {
             var customer = await _mediator.Send(command);
-            return Ok(_mapper.Map<CustomerReponse>(customer));
+            return _mapper.Map<CustomerReponse>(customer);
         }
 
         [HttpGet("{id}")]

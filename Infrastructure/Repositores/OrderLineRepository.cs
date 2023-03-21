@@ -33,6 +33,10 @@ namespace Infrastructure.Repositores
             return await _context.OrderLines.FirstOrDefaultAsync(o => o.Id == orderLineId);
         }
 
+        /// <summary>
+        /// Update order line only if it's in DRAFT state
+        /// </summary>
+        /// <param name="orderLine"></param>
         public void Update(OrderLine orderLine)
         {
             var order = _context.Orders.FirstOrDefault(o => o.Id == orderLine.OrderId);

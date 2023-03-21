@@ -24,11 +24,11 @@ namespace API.Controllers
         }
         
         [HttpPost]
-        public async Task<IActionResult> Store([FromBody]CreateAirportCommand command)
+        public async Task<AirportViewModel> Store([FromBody]CreateAirportCommand command)
         {
             var airport = await _mediator.Send(command);
 
-            return Ok(_mapper.Map<AirportViewModel>(airport));
+            return _mapper.Map<AirportViewModel>(airport);
         }
     }
 }

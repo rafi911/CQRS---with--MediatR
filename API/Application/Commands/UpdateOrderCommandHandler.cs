@@ -10,43 +10,46 @@ using System.Threading.Tasks;
 
 namespace API.Application.Commands
 {
-    public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, OrderResponse>
+    public class UpdateOrderCommandHandler : IRequestHandler<UpdateOrderCommand, OrderLine>
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IFlightRateRepository _flightRateRepository;
-        private readonly IMapper _mapper;
 
-        public UpdateOrderCommandHandler(IOrderRepository orderRepository, IFlightRateRepository flightRateRepository, IOrderLineRepository orderLineRepository, IMapper mapper)
+        public UpdateOrderCommandHandler(IOrderRepository orderRepository, IFlightRateRepository flightRateRepository)
         {
             _orderRepository = orderRepository;
             _flightRateRepository = flightRateRepository;
-            _mapper = mapper;
         }
 
-        public async Task<OrderResponse> Handle(UpdateOrderCommand request, CancellationToken cancellationToken)
+        public async Task<OrderLine> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
         {
-            var order = await _orderRepository.GetAsync(request.OrderId);
+            // Get the order associated with the command.OrderId
+            var order = await _orderRepository.GetAsync(command.OrderId);
+
+            // If the order state is already confirmed, return the default value
             if (order.State == OrderState.CONFIRMED) 
             {
                 return default;
             }
+
+            // Change the order state to confirmed
             order.ChangeState(OrderState.CONFIRMED);
 
             _orderRepository.Update(order);
 
             //for the movement, consider relationshop between oder & orderline is 1:1 
-            var oderLine = order.OrderLines.FirstOrDefault();
+            var orderLine = order.OrderLines.FirstOrDefault();
 
-            var flightRate = await _flightRateRepository.Get(oderLine.FlightRateId).FirstOrDefaultAsync();
+            var flightRate = await _flightRateRepository.Get(orderLine.FlightRateId).FirstOrDefaultAsync();
 
-            // Reduce available slots from source
-            flightRate.ReduceAvailability(oderLine.Slots);
+            // Reduce the number of available slots for the flight rate
+            flightRate.ReduceAvailability(orderLine.Slots);
 
             _flightRateRepository.Update(flightRate);
 
-            await _orderRepository.UnitOfWork.SaveChangesAsync();
+            await _orderRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<OrderResponse>(oderLine);
+            return orderLine;
         }
     }
 }

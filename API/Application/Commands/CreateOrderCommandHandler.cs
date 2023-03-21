@@ -7,50 +7,52 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace API.Application.Commands
 {
-    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderResponse>
+    public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, OrderLine>
     {
         private readonly IOrderRepository _orderRepository;
         private readonly IOrderLineRepository _orderLineRepository;
         private readonly IFlightRateRepository _flightRateRepository;
-        private readonly IMapper _mapper;
         public CreateOrderCommandHandler
             (
                 IOrderRepository orderRepository,
                 IOrderLineRepository orderLineRepository,
-                IFlightRateRepository flightRateRepository,
-                IMapper mapper
+                IFlightRateRepository flightRateRepository
             )
         {
             _orderRepository = orderRepository;
             _orderLineRepository = orderLineRepository;
             _flightRateRepository = flightRateRepository;
-            _mapper = mapper;
         }
 
-        public async Task<OrderResponse> Handle(CreateOrderCommand request, CancellationToken cancellationToken)
+        public async Task<OrderLine> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
         {
-            var flightRate = await _flightRateRepository.Get(request.FlightRateId).FirstOrDefaultAsync();
-            if(flightRate== null)
+            // Get the flight rate associated with the command.flightRateId
+            var flightRate = await _flightRateRepository.Get(command.FlightRateId).SingleOrDefaultAsync();
+
+            if (flightRate == null)
             {
-                return default;
+                throw new ArgumentException($"Flight rate with ID {command.FlightRateId} not found");
             }
 
-            if (request.Slots > flightRate.Available)
+            // If there are not enough slots available, throw an exception
+            if (command.Slots > flightRate.Available)
             {
-                return default;
+                throw new ArgumentException($"Not enough slots available for flight rate with ID {command.FlightRateId}");
             }
 
-            var order = _orderRepository.Add(new Order(request.CustomerId, OrderState.DRAFT, DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc)));
-            var orderLine = _orderLineRepository.Add(new OrderLine(order.Id, request.FlightRateId, flightRate.Price.Value, request.Slots));
+            // Create a new order & order line
+            var order = _orderRepository.Add(new Order(command.CustomerId, OrderState.DRAFT, DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc)));
+            var orderLine = _orderLineRepository.Add(new OrderLine(order.Id, command.FlightRateId, flightRate.Price.Value, command.Slots));
 
             orderLine.Order = order;
 
-            await _orderLineRepository.UnitOfWork.SaveChangesAsync();
+            await _orderLineRepository.UnitOfWork.SaveChangesAsync(cancellationToken);
 
-            return _mapper.Map<OrderResponse>(orderLine);
+            return orderLine;
         }
     }
 }
