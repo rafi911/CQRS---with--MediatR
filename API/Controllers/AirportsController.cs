@@ -3,6 +3,7 @@ using API.Application.Commands;
 using API.Application.ViewModels;
 using AutoMapper;
 using MediatR;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -24,11 +25,11 @@ namespace API.Controllers
         }
         
         [HttpPost]
-        public async Task<AirportViewModel> Store([FromBody]CreateAirportCommand command)
+        public async Task<IActionResult> Store([FromBody]CreateAirportCommand command)
         {
             var airport = await _mediator.Send(command);
 
-            return _mapper.Map<AirportViewModel>(airport);
+            return Created("", airport);
         }
     }
 }

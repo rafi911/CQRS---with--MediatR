@@ -23,10 +23,10 @@ namespace API.Controllers
         }
 
         [HttpPost]
-        public async Task<OrderResponse> PostAsync(CreateOrderCommand command)
+        public async Task<ActionResult<OrderResponse>> PostAsync(CreateOrderCommand command)
         {
             var orderDetail = await _mediator.Send(command);
-            return _mapper.Map<OrderResponse>(orderDetail);
+            return Created("", _mapper.Map<OrderResponse>(orderDetail));
         }
 
         [HttpPatch("{id}/Update")]

@@ -41,13 +41,12 @@ namespace Infrastructure.Repositores
                           join originAirport in _context.Airports on flight.OriginAirportId equals originAirport.Id
                           join flightRate in _context.FlightRates on flight.Id equals flightRate.FlightId
                           where destinationAirport.Name.Contains(destination) || destinationAirport.Code.Contains(destination)
-                          group new { flight , destinationAirport , originAirport , flightRate } by new 
-                            { 
-                              flight.Id,                            
+                          group new { flight, destinationAirport, originAirport, flightRate } by new
+                          {
+                              flight.Id,
                               departureAirportCode = originAirport.Code,
                               ArrivaleAirportCode = destinationAirport.Code,
                           } into g
-                          let cheapestFlightRate = g.Select(aggegate => aggegate.flightRate).OrderBy(rate => rate.Price.Value).FirstOrDefault()
                           select new FlightDetail
                           {
                               FlightId = g.Key.Id,
@@ -55,10 +54,11 @@ namespace Infrastructure.Repositores
                               ArrivalAirportCode = g.Key.ArrivaleAirportCode,
                               Arrival = g.Select(aggegate => aggegate.flight.Arrival).FirstOrDefault(),
                               Departure = g.Select(aggegate => aggegate.flight.Departure).FirstOrDefault(),
-                              PriceFrom = cheapestFlightRate.Price.Value,
-                              FlightRateId = cheapestFlightRate.Id
+                              PriceFrom = g.Select(aggegate => aggegate.flightRate).OrderBy(rate => rate.Price.Value).Take(1).FirstOrDefault().Price.Value,
+                              FlightRateId = g.Select(aggegate => aggegate.flightRate).OrderBy(rate => rate.Price.Value).Take(1).FirstOrDefault().Id
                           }).ToListAsync();
         }
+
 
         public void Update(Flight flight)
         {
